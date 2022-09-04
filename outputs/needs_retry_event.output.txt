@@ -1,0 +1,63 @@
+needs-retry.s3.ListBuckets
+{
+    'response': (
+        <botocore.awsrequest.AWSResponse object at 0x10dfbf580>,
+        {
+            'ResponseMetadata': {
+                'RequestId': 'S4WDSESNT9BV5X60',
+                'HostId': 'c9H4k3yUmB23QCIOrsYwvCK/om0xxiotIbShO9i35fl7hzkWzUtRXxfoXYGCS9z46QMQVz/EaXU=',
+                'HTTPStatusCode': 200,
+                'HTTPHeaders': {
+                    'x-amz-id-2': 'c9H4k3yUmB23QCIOrsYwvCK/om0xxiotIbShO9i35fl7hzkWzUtRXxfoXYGCS9z46QMQVz/EaXU=',
+                    'x-amz-request-id': 'S4WDSESNT9BV5X60',
+                    'date': 'Sun, 04 Sep 2022 15:28:03 GMT',
+                    'content-type': 'application/xml',
+                    'transfer-encoding': 'chunked',
+                    'server': 'AmazonS3'
+                }
+            },
+            'Buckets': [{'Name': 'micktwomey-scratch-example', 'CreationDate': datetime.datetime(2022, 9, 4, 15, 13, 22, tzinfo=tzutc())}],
+            'Owner': {'DisplayName': 'aws-scratch-account', 'ID': '1305744cb586daf054976969e08336547e38cf32939d2bacd7f31a896db7b67e'}
+        }
+    ),
+    'endpoint': s3(https://s3.eu-west-1.amazonaws.com),
+    'operation': OperationModel(name=ListBuckets),
+    'attempts': 1,
+    'caught_exception': None,
+    'request_dict': {
+        'url_path': '/',
+        'query_string': '',
+        'method': 'GET',
+        'headers': {'User-Agent': 'Boto3/1.24.66 Python/3.10.0 Darwin/21.6.0 Botocore/1.27.66'},
+        'body': b'',
+        'url': 'https://s3.eu-west-1.amazonaws.com/',
+        'context': {
+            'client_region': 'eu-west-1',
+            'client_config': <botocore.config.Config object at 0x10dfbcd00>,
+            'has_streaming_input': False,
+            'auth_type': None,
+            'signing': {'bucket': None},
+            'retries': {'attempt': 1, 'invocation-id': '0cc66c5c-96e9-47bb-ba9b-42c5f3b1ec62'},
+            'timestamp': '20220904T152802Z'
+        }
+    }
+}
+List buckets:
+{
+    'ResponseMetadata': {
+        'RequestId': 'S4WDSESNT9BV5X60',
+        'HostId': 'c9H4k3yUmB23QCIOrsYwvCK/om0xxiotIbShO9i35fl7hzkWzUtRXxfoXYGCS9z46QMQVz/EaXU=',
+        'HTTPStatusCode': 200,
+        'HTTPHeaders': {
+            'x-amz-id-2': 'c9H4k3yUmB23QCIOrsYwvCK/om0xxiotIbShO9i35fl7hzkWzUtRXxfoXYGCS9z46QMQVz/EaXU=',
+            'x-amz-request-id': 'S4WDSESNT9BV5X60',
+            'date': 'Sun, 04 Sep 2022 15:28:03 GMT',
+            'content-type': 'application/xml',
+            'transfer-encoding': 'chunked',
+            'server': 'AmazonS3'
+        },
+        'RetryAttempts': 0
+    },
+    'Buckets': [{'Name': 'micktwomey-scratch-example', 'CreationDate': datetime.datetime(2022, 9, 4, 15, 13, 22, tzinfo=tzutc())}],
+    'Owner': {'DisplayName': 'aws-scratch-account', 'ID': '1305744cb586daf054976969e08336547e38cf32939d2bacd7f31a896db7b67e'}
+}

@@ -1,0 +1,271 @@
+provide-client-params.s3.ListBuckets
+{
+    'params': {},
+    'model': OperationModel(name=ListBuckets),
+    'context': {
+        'client_region': 'eu-west-1',
+        'client_config': <botocore.config.Config object at 0x1078b8d90>,
+        'has_streaming_input': False,
+        'auth_type': None
+    }
+}
+before-parameter-build.s3.ListBuckets
+{
+    'params': {},
+    'model': OperationModel(name=ListBuckets),
+    'context': {
+        'client_region': 'eu-west-1',
+        'client_config': <botocore.config.Config object at 0x1078b8d90>,
+        'has_streaming_input': False,
+        'auth_type': None
+    }
+}
+before-call.s3.ListBuckets
+{
+    'model': OperationModel(name=ListBuckets),
+    'params': {
+        'url_path': '/',
+        'query_string': '',
+        'method': 'GET',
+        'headers': {
+            'User-Agent': 'Boto3/1.24.66 Python/3.10.0 Darwin/21.6.0 Botocore/1.27.66'
+        },
+        'body': b'',
+        'url': 'https://s3.eu-west-1.amazonaws.com/',
+        'context': {
+            'client_region': 'eu-west-1',
+            'client_config': <botocore.config.Config object at 0x1078b8d90>,
+            'has_streaming_input': False,
+            'auth_type': None,
+            'signing': {'bucket': None}
+        }
+    },
+    'request_signer': <botocore.signers.RequestSigner object at 0x10777be80>,
+    'context': {
+        'client_region': 'eu-west-1',
+        'client_config': <botocore.config.Config object at 0x1078b8d90>,
+        'has_streaming_input': False,
+        'auth_type': None,
+        'signing': {'bucket': None}
+    }
+}
+request-created.s3.ListBuckets
+{
+    'request': <botocore.awsrequest.AWSRequest object at 0x1078bac20>,
+    'operation_name': 'ListBuckets'
+}
+choose-signer.s3.ListBuckets
+{
+    'signing_name': 's3',
+    'region_name': 'eu-west-1',
+    'signature_version': 's3v4',
+    'context': {
+        'client_region': 'eu-west-1',
+        'client_config': <botocore.config.Config object at 0x1078b8d90>,
+        'has_streaming_input': False,
+        'auth_type': None,
+        'signing': {'bucket': None},
+        'retries': {
+            'attempt': 1,
+            'invocation-id': '5be6f404-04c4-4e1f-a241-218934518084'
+        }
+    }
+}
+before-sign.s3.ListBuckets
+{
+    'request': <botocore.awsrequest.AWSRequest object at 0x1078bac20>,
+    'signing_name': 's3',
+    'region_name': 'eu-west-1',
+    'signature_version': 's3v4',
+    'request_signer': <botocore.signers.RequestSigner object at 0x10777be80>,
+    'operation_name': 'ListBuckets'
+}
+before-send.s3.ListBuckets
+{
+    'request': <AWSPreparedRequest stream_output=False, method=GET, 
+url=https://s3.eu-west-1.amazonaws.com/, headers={'User-Agent': b'Boto3/1.24.66 
+Python/3.10.0 Darwin/21.6.0 Botocore/1.27.66', 'X-Amz-Date': b'20220904T172857Z', 
+'X-Amz-Security-Token': 
+b'IQoJb3JpZ2luX2VjEDoaCWV1LXdlc3QtMSJIMEYCIQD5HmGdjs4Ec7/KLxRv9gN2XEeKJBC1gE9UBkPUOMUpmA
+IhAIrpBdXUwCe0RqaqhzKcsxETC5sW4Q4TZexgKN4XefgTKoYDCMP//////////wEQABoMMzk2MDg3MTA5Nzc2Ig
+ydq1XbfjSz9IZSMYYq2gIhUZXUiozVK4Y3bXizyS6Sga5nJwx3irj/Wi4azSJ+pp0XCXMvNp4UiQ4yXMc5GxwMfo
+WdoyjUkmOp3znM+YpSEiBKMEoPdT0fcmqwgZ2CKEX5zKVUTa+1zwFUK1DnmrRAUJqLwH+DMEc5fnOkHK4K8eHdjE
+utg/R6yr3E3y7wvnf//wt4Rb5eSOt7JtLrj4M0xNyqYKc9054SQafIoMyBQ1emqRnQ0W0UrJCcbBRulsK81aAsat
+hXQtrjVxcDINEKcj+2UwYM1ldJUHYS4tPd9a20/ISSmT23dpoiA5lb8ggDHKV0eb2lZI41CRlxLilFhZhSAz5xfK
+G1AlH5WwYQaTNkFvZsacR7vFKq1dir+vkYgm/LRs0SULXa8XqEm3A0v3WEOHWXeIbuxlHMgBMpGFQm6DvmwUyxo2
+tQSevI5LvvICI/xsPAsloTQD6na6ptHVZG07OF+rS1MNnA05gGOqUBM1+cstzWld417xUuPckZIdR1V4DT4qJAU4
+GEYmiNI0+eo/cs/bMEbRNO1rcL3pOWCFzRCPhgsjLBd86JKRzMHXXlxM9GZ5jtZonhLKGtcBiNk38rBoNeJSEPV+
+IEsp2p9oMNC4NLNc1+irtEFT5W0wDQKCXkwn9R4PlXOEoXExRGiNSlTSVzxJPN3uNFR9X/2KnhM7xlvpr99w87A0
+LSqk+h+UrR', 'X-Amz-Content-SHA256': 
+b'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855', 'Authorization': 
+b'AWS4-HMAC-SHA256 Credential=ASIAVYOFBVCIEQSTFF6M/20220904/eu-west-1/s3/aws4_request, 
+SignedHeaders=host;x-amz-content-sha256;x-amz-date;x-amz-security-token, 
+Signature=e183e5bfd383424a41833ebfee5b169ebd8fb0911ee548a5668dec3939ea60bc', 
+'amz-sdk-invocation-id': b'5be6f404-04c4-4e1f-a241-218934518084', 'amz-sdk-request': 
+b'attempt=1'}>
+}
+response-received.s3.ListBuckets
+{
+    'response_dict': {
+        'headers': {'x-amz-id-2': 
+'bcjGxsYrwKn36i17QaJAXi2x1Fm6F1/tHM/udW8Yb4KZmoqJKOnhSScWug+AwH/Gq3PbqkloJSs=', 
+'x-amz-request-id': 'QZV9EWHJMR4T8VQ9', 'Date': 'Sun, 04 Sep 2022 17:29:01 GMT', 
+'Content-Type': 'application/xml', 'Transfer-Encoding': 'chunked', 'Server': 
+'AmazonS3'},
+        'status_code': 200,
+        'context': {'operation_name': 'ListBuckets'},
+        'body': b'<?xml version="1.0" encoding="UTF-8"?>\n<ListAllMyBucketsResult 
+xmlns="http://s3.amazonaws.com/doc/2006-03-01/"><Owner><ID>1305744cb586daf054976969e0833
+6547e38cf32939d2bacd7f31a896db7b67e</ID><DisplayName>aws-scratch-account</DisplayName></
+Owner><Buckets><Bucket><Name>micktwomey-scratch-example</Name><CreationDate>2022-09-04T1
+5:13:22.000Z</CreationDate></Bucket></Buckets></ListAllMyBucketsResult>'
+    },
+    'parsed_response': {
+        'ResponseMetadata': {
+            'RequestId': 'QZV9EWHJMR4T8VQ9',
+            'HostId': 
+'bcjGxsYrwKn36i17QaJAXi2x1Fm6F1/tHM/udW8Yb4KZmoqJKOnhSScWug+AwH/Gq3PbqkloJSs=',
+            'HTTPStatusCode': 200,
+            'HTTPHeaders': {
+                'x-amz-id-2': 
+'bcjGxsYrwKn36i17QaJAXi2x1Fm6F1/tHM/udW8Yb4KZmoqJKOnhSScWug+AwH/Gq3PbqkloJSs=',
+                'x-amz-request-id': 'QZV9EWHJMR4T8VQ9',
+                'date': 'Sun, 04 Sep 2022 17:29:01 GMT',
+                'content-type': 'application/xml',
+                'transfer-encoding': 'chunked',
+                'server': 'AmazonS3'
+            }
+        },
+        'Buckets': [
+            {
+                'Name': 'micktwomey-scratch-example',
+                'CreationDate': datetime.datetime(2022, 9, 4, 15, 13, 22, 
+tzinfo=tzutc())
+            }
+        ],
+        'Owner': {
+            'DisplayName': 'aws-scratch-account',
+            'ID': '1305744cb586daf054976969e08336547e38cf32939d2bacd7f31a896db7b67e'
+        }
+    },
+    'context': {
+        'client_region': 'eu-west-1',
+        'client_config': <botocore.config.Config object at 0x1078b8d90>,
+        'has_streaming_input': False,
+        'auth_type': None,
+        'signing': {'bucket': None},
+        'retries': {
+            'attempt': 1,
+            'invocation-id': '5be6f404-04c4-4e1f-a241-218934518084'
+        },
+        'timestamp': '20220904T172857Z'
+    },
+    'exception': None
+}
+needs-retry.s3.ListBuckets
+{
+    'response': (
+        <botocore.awsrequest.AWSResponse object at 0x107abb970>,
+        {
+            'ResponseMetadata': {
+                'RequestId': 'QZV9EWHJMR4T8VQ9',
+                'HostId': 
+'bcjGxsYrwKn36i17QaJAXi2x1Fm6F1/tHM/udW8Yb4KZmoqJKOnhSScWug+AwH/Gq3PbqkloJSs=',
+                'HTTPStatusCode': 200,
+                'HTTPHeaders': {
+                    'x-amz-id-2': 
+'bcjGxsYrwKn36i17QaJAXi2x1Fm6F1/tHM/udW8Yb4KZmoqJKOnhSScWug+AwH/Gq3PbqkloJSs=',
+                    'x-amz-request-id': 'QZV9EWHJMR4T8VQ9',
+                    'date': 'Sun, 04 Sep 2022 17:29:01 GMT',
+                    'content-type': 'application/xml',
+                    'transfer-encoding': 'chunked',
+                    'server': 'AmazonS3'
+                }
+            },
+            'Buckets': [
+                {
+                    'Name': 'micktwomey-scratch-example',
+                    'CreationDate': datetime.datetime(2022, 9, 4, 15, 13, 22, 
+tzinfo=tzutc())
+                }
+            ],
+            'Owner': {
+                'DisplayName': 'aws-scratch-account',
+                'ID': '1305744cb586daf054976969e08336547e38cf32939d2bacd7f31a896db7b67e'
+            }
+        }
+    ),
+    'endpoint': s3(https://s3.eu-west-1.amazonaws.com),
+    'operation': OperationModel(name=ListBuckets),
+    'attempts': 1,
+    'caught_exception': None,
+    'request_dict': {
+        'url_path': '/',
+        'query_string': '',
+        'method': 'GET',
+        'headers': {
+            'User-Agent': 'Boto3/1.24.66 Python/3.10.0 Darwin/21.6.0 Botocore/1.27.66'
+        },
+        'body': b'',
+        'url': 'https://s3.eu-west-1.amazonaws.com/',
+        'context': {
+            'client_region': 'eu-west-1',
+            'client_config': <botocore.config.Config object at 0x1078b8d90>,
+            'has_streaming_input': False,
+            'auth_type': None,
+            'signing': {'bucket': None},
+            'retries': {
+                'attempt': 1,
+                'invocation-id': '5be6f404-04c4-4e1f-a241-218934518084'
+            },
+            'timestamp': '20220904T172857Z'
+        }
+    }
+}
+after-call.s3.ListBuckets
+{
+    'http_response': <botocore.awsrequest.AWSResponse object at 0x107abb970>,
+    'parsed': {
+        'ResponseMetadata': {
+            'RequestId': 'QZV9EWHJMR4T8VQ9',
+            'HostId': 
+'bcjGxsYrwKn36i17QaJAXi2x1Fm6F1/tHM/udW8Yb4KZmoqJKOnhSScWug+AwH/Gq3PbqkloJSs=',
+            'HTTPStatusCode': 200,
+            'HTTPHeaders': {
+                'x-amz-id-2': 
+'bcjGxsYrwKn36i17QaJAXi2x1Fm6F1/tHM/udW8Yb4KZmoqJKOnhSScWug+AwH/Gq3PbqkloJSs=',
+                'x-amz-request-id': 'QZV9EWHJMR4T8VQ9',
+                'date': 'Sun, 04 Sep 2022 17:29:01 GMT',
+                'content-type': 'application/xml',
+                'transfer-encoding': 'chunked',
+                'server': 'AmazonS3'
+            },
+            'RetryAttempts': 0
+        },
+        'Buckets': [
+            {
+                'Name': 'micktwomey-scratch-example',
+                'CreationDate': datetime.datetime(2022, 9, 4, 15, 13, 22, 
+tzinfo=tzutc())
+            }
+        ],
+        'Owner': {
+            'DisplayName': 'aws-scratch-account',
+            'ID': '1305744cb586daf054976969e08336547e38cf32939d2bacd7f31a896db7b67e'
+        }
+    },
+    'model': OperationModel(name=ListBuckets),
+    'context': {
+        'client_region': 'eu-west-1',
+        'client_config': <botocore.config.Config object at 0x1078b8d90>,
+        'has_streaming_input': False,
+        'auth_type': None,
+        'signing': {'bucket': None},
+        'retries': {
+            'attempt': 1,
+            'invocation-id': '5be6f404-04c4-4e1f-a241-218934518084',
+            'max': 5
+        },
+        'timestamp': '20220904T172857Z'
+    }
+}
