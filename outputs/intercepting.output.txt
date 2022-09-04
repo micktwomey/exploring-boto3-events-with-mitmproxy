@@ -1,0 +1,2 @@
+needs-retry.s3.ListBuckets OperationModel(name=ListBuckets) 1 200
+{'attempt': 1, 'invocation-id': 'f78cd77b-35ae-4956-ad8a-deb6ff45c7f1'}

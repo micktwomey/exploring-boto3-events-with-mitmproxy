@@ -1,0 +1,2 @@
+{"version": 2, "width": 80, "height": 40, "timestamp": 1662326381, "env": {"SHELL": "/usr/local/bin/fish", "TERM": "xterm-256color"}}
+[1.233715, "o", "needs-retry.s3.ListBuckets \u001b[1;35mOperationModel\u001b[0m\u001b[1m(\u001b[0m\u001b[33mname\u001b[0m=\u001b[35mListBuckets\u001b[0m\u001b[1m)\u001b[0m \u001b[1;36m1\u001b[0m \u001b[1;36m200\u001b[0m\r\n\u001b[1m{\u001b[0m\u001b[32m'attempt'\u001b[0m: \u001b[1;36m1\u001b[0m, \u001b[32m'invocation-id'\u001b[0m: \u001b[32m'f7df020c-2d02-4f9a-9a1a-d73c25d82e87'\u001b[0m\u001b[1m}\u001b[0m\r\n"]
