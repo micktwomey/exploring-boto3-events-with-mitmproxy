@@ -1,4 +1,4 @@
-theme: Huerta, 1
+theme: fourTheorem, 1
 slidenumbers: true
 
 ## Exploring Boto3 Events with MitmProxy
@@ -6,7 +6,26 @@ slidenumbers: true
 
 ---
 
+[.column]
+
 # About Me
+
+- ☁️ Senior Cloud Architect at fourTheorem
+- Started my career in Sun Microsystems working on the Solaris OS
+- 🐍 Been coding in Python for over 20 years
+- Started kicking the tyres of AWS back when it was just S3, EC2 and SQS
+
+[.column]
+
+# About fourTheorem
+
+![inline](/Users/mick/src/github.com/micktwomey/exploring-boto3-events-with-mitmproxy/images/fourTheorem-Logo-Colour.png)
+
+![inline](/Users/mick/src/github.com/micktwomey/exploring-boto3-events-with-mitmproxy/images/awsbites.png)
+
+- Accelerated Serverless
+- AI as a Service
+- Platform Modernisation
 
 ---
 
@@ -584,3 +603,20 @@ print("All done!")
 ---
 
 ![fit](/Users/mick/src/github.com/micktwomey/exploring-boto3-events-with-mitmproxy/outputs/tmux-2022-09-04--2239.gif)
+
+---
+
+# So What Was the Point of All That?
+
+![left fit](/Users/mick/src/github.com/micktwomey/exploring-boto3-events-with-mitmproxy/images/retries.png)
+
+```
+fields @timestamp, event_name
+| filter ispresent(event_name)
+| filter event_name	= 'needs-retry.s3.PutObject'
+| filter attempts > 1
+| sort by @timestamp asc
+| stats count() by bin(1m)
+```
+
+The graph shows over 250K retry attempts at the peak!
