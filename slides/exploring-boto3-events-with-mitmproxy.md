@@ -1,8 +1,17 @@
 theme: fourTheorem, 1
 slidenumbers: true
 
-## Exploring Boto3 Events with MitmProxy
-### Michael Twomey @ fourTheorem
+# [fit] Exploring Boto3 Events with MitmProxy
+
+## AWS ComSum September 22, 2022
+
+Michael Twomey
+
+
+
+@micktwomey / michael.twomey@fourtheorem.com
+
+![](/Users/mick/src/github.com/micktwomey/exploring-boto3-events-with-mitmproxy/images/fourtheorem-background.jpg)
 
 ---
 
