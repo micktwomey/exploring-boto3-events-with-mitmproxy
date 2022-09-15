@@ -5,13 +5,15 @@ slidenumbers: true
 
 ## AWS ComSum September 22, 2022
 
+![inline](../images/fourTheorem-Logo-Colour.png)
+
 Michael Twomey
-
-
 
 @micktwomey / michael.twomey@fourtheorem.com
 
-![](/Users/mick/src/github.com/micktwomey/exploring-boto3-events-with-mitmproxy/images/fourtheorem-background.jpg)
+
+
+![filtered](../images/fourtheorem-background.jpg)
 
 ---
 
@@ -20,7 +22,7 @@ Michael Twomey
 # About Me
 
 - ☁️ Senior Cloud Architect at fourTheorem
-- Started my career in Sun Microsystems working on the Solaris OS
+- Started my career in Sun Microsystems working on the Solaris OS in 1999 (yes, Y2K was a thing)
 - 🐍 Been coding in Python for over 20 years
 - Started kicking the tyres of AWS back when it was just S3, EC2 and SQS
 
@@ -28,9 +30,9 @@ Michael Twomey
 
 # About fourTheorem
 
-![inline](/Users/mick/src/github.com/micktwomey/exploring-boto3-events-with-mitmproxy/images/fourTheorem-Logo-Colour.png)
+![inline](../images/fourTheorem-Logo-Colour.png)
 
-![inline](/Users/mick/src/github.com/micktwomey/exploring-boto3-events-with-mitmproxy/images/awsbites.png)
+![inline](../images/awsbites.png)
 
 - Accelerated Serverless
 - AI as a Service
@@ -41,43 +43,111 @@ Michael Twomey
 # What I'll be Talking About
 
 - A dash of AWS APIs
-- A bit of Python
 - Some boto3
+- A bit of Python
 - A pinch of HTTP
 - A tiny bit of TLS
 - A portion of mitmproxy
+
+^ In short: how you combine tools to solve problems
 
 ---
 
 # The Setup
 
-Client code base using Python and the boto3 library to talk to AWS
 
-The core of the system runs a huge amount of computations spread over a large amount of jobs in either Lambdas or Fargate containers [^1]
+![left fit](../images/renre-architecture.png)
 
-[^1]: For more details check out the [slides](https://d1.awsstatic.com/aws-summit-london-session-slides/But%20what%20is%20a%20modern%20application%20anyway.pdf) from the AWS Summit London 2022 talk "But what is a modern application anyway?"
+Code base using Python and the boto3 library to talk to AWS
 
+The core of the system runs a huge amount of computations spread over a large amount of jobs in either Lambda or Fargate containers [^1]
 
----
+It wouldn't be unusual to have thousands of containers running many compute jobs per second.
 
-# The Problem We Were Trying to Solve
+[^1]: For more details check out the post "A serverless architecture for high performance financial modelling" - [https://aws.amazon.com/blogs/hpc/a-serverless-architecture-for-high-performance-financial-modelling/](https://aws.amazon.com/blogs/hpc/a-serverless-architecture-for-high-performance-financial-modelling/)
 
-During peaks we would occassionally see large slow downs and sometimes errors in some jobs.
-
-We wanted to answer the question:
-
-> "Are we triggering a lot of request retries?"
 
 ---
 
-# Request Retries
+# The Problem
 
+![right fit](../images/renre-architecture-zoomed.png)
+
+During very large job runs we would occassionally see large slow downs and sometimes rate limit errors in some jobs.
+
+This prompted the question:
+
+> "Are we triggering a lot of AWS request retries?"
+
+---
+
+# Request Retries?
+
+AWS has rate limits on their APIs (sensible!)
+
+S3 PUT object might have a rate limit of 3,500 requests per second [^2]
+
+When you hit this you might get back a `HTTP 429` or `HTTP 503`
+
+boto3 can mostly automatically handle this via retries[^3] with minimal impact on your application
+
+[^2]: [https://docs.aws.amazon.com/AmazonS3/latest/userguide/optimizing-performance.html](https://docs.aws.amazon.com/AmazonS3/latest/userguide/optimizing-performance.html)
+
+[^3]: [https://boto3.amazonaws.com/v1/documentation/api/latest/guide/retries.html#standard-retry-mode](https://boto3.amazonaws.com/v1/documentation/api/latest/guide/retries.html#standard-retry-mode)
+
+---
+
+# Retry Mechanism
+
+boto3's default retry handler[^4] implements the classic "retry with jitter" approach[^5]:
+
+1. For a known set of errors catch them
+2. Count the number of times we've tried
+3. Take the count and multiply by some random number and some scale factor
+4. Sleep for that long
+5. Retry the call
+6. If we're out of retry attempts fail, otherwise go back to (1)
+
+[^4]: [https://github.com/boto/botocore/blob/develop/botocore/retryhandler.py](https://github.com/boto/botocore/blob/develop/botocore/retryhandler.py)
+
+[^5]: [https://aws.amazon.com/builders-library/timeouts-retries-and-backoff-with-jitter/](https://aws.amazon.com/builders-library/timeouts-retries-and-backoff-with-jitter/)
+
+---
+
+# Retry Sleep Formula
+
+```python
+# From https://github.com/boto/botocore/blob/develop/botocore/retryhandler.py
+
+base = random.random()
+growth_factor = 2
+base * (growth_factor ** (attempts - 1))
+
+# attempt 1 = 1 second max
+# attempt 2 = 2 second max
+# attempt 3 = 8 second max
+# attempt 4 = 16 second max
+# attempt 5 = 32 second max
+
+# Default of 5 retries
+# 32 + 16 + 8 + 2 + 1 = 59 seconds max sleep total
+```
+
+---
+
+# The Impact
+
+Lots lots of calls per second * sleeping for a bunch of time = a big pile up
+
+As more calls bunch up and sleep, we encounter more rate limits, leading to more calls...
+
+Could this account for our stalls?
 
 ---
 
 # boto3 Events
 
-Events[^2] are an extension mechanism for boto3
+Events[^6] are an extension mechanism for boto3
 
 You register a function to be called when an event matching a pattern happens.
 
@@ -90,7 +160,7 @@ s3.meta.events.register("provide-client-params.*", my_function)
 s3.meta.events.register("*", my_function)
 ```
 
-[^2]: boto3 event docs over at https://boto3.amazonaws.com/v1/documentation/api/latest/guide/events.html
+[^6]: boto3 event docs over at [https://boto3.amazonaws.com/v1/documentation/api/latest/guide/events.html](https://boto3.amazonaws.com/v1/documentation/api/latest/guide/events.html)
 
 ---
 
@@ -165,7 +235,7 @@ s3.meta.events.register("*", print_event)
 
 # Example kwargs
 
-![inline fill](/Users/mick/src/github.com/micktwomey/exploring-boto3-events-with-mitmproxy/outputs/basic_event_logging.gif)
+![inline fill](../outputs/basic_event_logging.gif)
 
 
 ---
@@ -359,7 +429,7 @@ Let's you mess with the HTTP requests and responses from programs
 
 Bit like Chrome Dev Tools for all your HTTP speaking commands
 
-![fit right](/Users/mick/src/github.com/micktwomey/exploring-boto3-events-with-mitmproxy/images/mitmproxy.png)
+![fit right](../images/mitmproxy.png)
 
 ---
 
@@ -383,7 +453,7 @@ python my_app.py
 
 ---
 
-![fit](/Users/mick/src/github.com/micktwomey/exploring-boto3-events-with-mitmproxy/outputs/tmux-2022-09-04--2105.gif)
+![fit](../outputs/tmux-2022-09-04--2105.gif)
 
 ---
 
@@ -475,7 +545,7 @@ Connection: keep-alive
 
 ---
 
-![fit](/Users/mick/src/github.com/micktwomey/exploring-boto3-events-with-mitmproxy/outputs/tmux-2022-09-04--2106.gif)
+![fit](../outputs/tmux-2022-09-04--2106.gif)
 
 ---
 
@@ -500,7 +570,7 @@ We tell boto3 to use a different cert bundle (`AWS_CA_BUNDLE`)
 
 ---
 
-![fit](/Users/mick/src/github.com/micktwomey/exploring-boto3-events-with-mitmproxy/outputs/tmux-2022-09-04--2130.gif)
+![fit](../outputs/tmux-2022-09-04--2130.gif)
 
 ---
 
@@ -563,7 +633,7 @@ s3.list_buckets()
 
 ---
 
-![fit](/Users/mick/src/github.com/micktwomey/exploring-boto3-events-with-mitmproxy/outputs/tmux-2022-09-04--2214.gif)
+![fit](../outputs/tmux-2022-09-04--2214.gif)
 
 ---
 
@@ -611,13 +681,13 @@ print("All done!")
 
 ---
 
-![fit](/Users/mick/src/github.com/micktwomey/exploring-boto3-events-with-mitmproxy/outputs/tmux-2022-09-04--2239.gif)
+![fit](../outputs/tmux-2022-09-04--2239.gif)
 
 ---
 
 # So What Was the Point of All That?
 
-![left fit](/Users/mick/src/github.com/micktwomey/exploring-boto3-events-with-mitmproxy/images/retries.png)
+![left fit](../images/retries.png)
 
 ```
 fields @timestamp, event_name
