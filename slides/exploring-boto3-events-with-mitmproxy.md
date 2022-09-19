@@ -22,21 +22,23 @@ Michael Twomey
 # About Me
 
 - ☁️ Senior Cloud Architect at fourTheorem
-- Started my career in Sun Microsystems working on the Solaris OS in 1999 (yes, Y2K was a thing)
+- Started my career in Sun Microsystems working on the Solaris OS in 1999 (when Y2K was a thing)
 - 🐍 Been coding in Python for over 20 years
 - Started kicking the tyres of AWS back when it was just S3, EC2 and SQS
 
 [.column]
 
-# About fourTheorem
+![](../images/fourTheorem-Logo-Colour.png)
 
-![inline](../images/fourTheorem-Logo-Colour.png)
+[https://fourtheorem.com/](https://fourtheorem.com/)
+
+Reach out to us at [hello@fourTheorem.com](hello@fourTheorem.com) ✉️
 
 ![inline](../images/awsbites.png)
 
-- [https://awsbites.com](https://awsbites.com)
-- Accelerated Serverless
-- Platform Modernisation
+^ We are a pioneering technology consultancy focused on aws and serverless
+
+^ You might also know us from AWS Bites, a weekly podcast with Eoin and Luciano
 
 ---
 
