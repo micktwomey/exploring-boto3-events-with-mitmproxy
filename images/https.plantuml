@@ -1,0 +1,14 @@
+@startuml https
+scale 8
+!theme vibrant
+participant "TLS Trust Store" as store
+participant curl as app
+participant "fourtheorem.com" as server
+
+
+app -> server: Hello
+server -> app: Here's my fourtheorem.com TLS certificate
+app --> store: Is this fourtheorem.com certificate legit?
+store --> app: Yep
+app -> server: GET /
+@enduml

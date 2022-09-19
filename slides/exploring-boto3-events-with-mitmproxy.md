@@ -34,8 +34,8 @@ Michael Twomey
 
 ![inline](../images/awsbites.png)
 
+- [https://awsbites.com](https://awsbites.com)
 - Accelerated Serverless
-- AI as a Service
 - Platform Modernisation
 
 ---
@@ -49,7 +49,11 @@ Michael Twomey
 - A tiny bit of TLS
 - A portion of mitmproxy
 
+![right fit](../images/dall-e-london-underground-indiana-jones.png)
+
 ^ In short: how you combine tools to solve problems
+
+^ Image: "London underground map" in the style of Indiana Jones
 
 ---
 
@@ -73,11 +77,13 @@ It wouldn't be unusual to have thousands of containers running many compute jobs
 
 ![right fit](../images/renre-architecture-zoomed.png)
 
-During very large job runs we would occassionally see large slow downs and sometimes rate limit errors in some jobs.
+During very large job runs we would occassionally see inexplicable slow downs and sometimes rate limit errors
 
 This prompted the question:
 
-> "Are we triggering a lot of AWS request retries?"
+> "Are we triggering a lot of S3 request retries?"
+
+^ This could also equally apply to Kinesis or SQS or other APIs
 
 ---
 
@@ -89,7 +95,7 @@ S3 PUT object might have a rate limit of 3,500 requests per second [^2]
 
 When you hit this you might get back a `HTTP 429` or `HTTP 503`
 
-boto3 can mostly automatically handle this via retries[^3] with minimal impact on your application
+boto3 attempts to handle this invisibly via retries[^3] to minimize impact on your application
 
 [^2]: [https://docs.aws.amazon.com/AmazonS3/latest/userguide/optimizing-performance.html](https://docs.aws.amazon.com/AmazonS3/latest/userguide/optimizing-performance.html)
 
@@ -102,11 +108,11 @@ boto3 can mostly automatically handle this via retries[^3] with minimal impact o
 boto3's default retry handler[^4] implements the classic "retry with jitter" approach[^5]:
 
 1. For a known set of errors catch them
-2. Count the number of times we've tried
-3. Take the count and multiply by some random number and some scale factor
-4. Sleep for that long
-5. Retry the call
-6. If we're out of retry attempts fail, otherwise go back to (1)
+2. Keep count of the number of times we've tried
+3. If we've hit a maximum retry count fail and allow the error to bubble up
+4. Otherwise take the count and multiply by some random number and some scale factor
+5. Sleep for that long
+6. Retry the call
 
 [^4]: [https://github.com/boto/botocore/blob/develop/botocore/retryhandler.py](https://github.com/boto/botocore/blob/develop/botocore/retryhandler.py)
 
@@ -119,23 +125,29 @@ boto3's default retry handler[^4] implements the classic "retry with jitter" app
 ```python
 # From https://github.com/boto/botocore/blob/develop/botocore/retryhandler.py
 
-base = random.random()
-growth_factor = 2
 base * (growth_factor ** (attempts - 1))
 
-# attempt 1 = 1 second max
-# attempt 2 = 2 second max
-# attempt 3 = 8 second max
-# attempt 4 = 16 second max
-# attempt 5 = 32 second max
+base = random.random()  # random float between 0.0 and 1.0
+growth_factor = 2
+attempts = 2
+random.random() * (2 ** (2 - 1))
+0.75 * 2 = 1.5
+
+attempt 1 = 1 second max
+attempt 2 = 2 second max
+attempt 3 = 8 second max
+attempt 4 = 16 second max
+attempt 5 = 32 second max
 
 # Default of 5 retries
-# 32 + 16 + 8 + 2 + 1 = 59 seconds max sleep total
+32 + 16 + 8 + 2 + 1 = 59 seconds max sleep total, with 5x requests
 ```
 
 ---
 
 # The Impact
+
+![left fit](../images/dall-e-big-traffic-jam-warner-brothers.png)
 
 Lots lots of calls per second * sleeping for a bunch of time = a big pile up
 
@@ -143,30 +155,69 @@ As more calls bunch up and sleep, we encounter more rate limits, leading to more
 
 Could this account for our stalls?
 
+^ Image: "Big traffic jam" in the style of warner brothers cartoon
+
+---
+
+# How Can We Figure Out The Cause?
+
+Could use logging at DEBUG level
+
+```python
+logging.basicConfig(level=logging.DEBUG)
+```
+
+This is super verbose and logs an overwhelming level of detail
+
+What we want is some kind of hook to increment a count or emit a metric on retry
+
+Does boto3 offer any hooks? 🤔
+
 ---
 
 # boto3 Events
 
 Events[^6] are an extension mechanism for boto3
 
-You register a function to be called when an event matching a pattern happens.
-
-Wildcards (`*`) are also allowed for patterns.
-
-```python
-s3.meta.events.register("provide-client-params.s3.ListObjects", my_function)
-s3.meta.events.register("provide-client-params.s3.*", my_function)
-s3.meta.events.register("provide-client-params.*", my_function)
-s3.meta.events.register("*", my_function)
-```
+![inline fit](../images/boto3-events-docs.png)
 
 [^6]: boto3 event docs over at [https://boto3.amazonaws.com/v1/documentation/api/latest/guide/events.html](https://boto3.amazonaws.com/v1/documentation/api/latest/guide/events.html)
 
 ---
 
+# boto3 Events
+
+[.column]
+You register a function to be called when an event matching a pattern happens.
+
+Wildcards (`*`) are also allowed for patterns.
+
+```python
+"provide-client-params.s3.ListObjects"
+"provide-client-params.s3.*"
+"provide-client-params.*"
+"*"
+```
+
+[.column]
+```python
+def print_event(event_name, **kwargs):
+    print(event_name)
+
+s3 = boto3.client("s3")
+s3.meta.events.register("needs-retry.*", print_event)
+s3.list_buckets()
+
+ec2 = boto3.client("ec2")
+ec2.meta.events.register("needs-retry.*", print_event)
+ec2.describe_instances()
+```
+
+---
+
 ```python
 import boto3
-from rich import print
+from rich import print  # https://github.com/Textualize/rich
 
 
 def print_event(event_name, **kwargs):
@@ -233,9 +284,7 @@ s3.meta.events.register("*", print_event)
 
 ---
 
-# Example kwargs
-
-![inline fill](../outputs/basic_event_logging.gif)
+![fit](../outputs/basic_event_logging.gif)
 
 
 ---
@@ -333,7 +382,7 @@ add_handler("y.*", my_handler)
 [.column]
 - Events usually used for generic hooks in libraries
 - Ideally should have a consistent set of args for your handlers
-- Requires more documentations to guide the programmer
+- Requires more documentation to guide the programmer
 
 ---
 
@@ -353,14 +402,15 @@ Solution: Lets watch them play out!
 
 There are many ways to trigger problems:
 
-- Hacking the library
-- Hacking Python
-- Hacking the network
-- Triggering the problem for real
+- Hacking the library 📚
+- Hacking Python 🐍
+- Hacking the OS 👩‍💻
+- Hacking the network 🌐
+- Triggering the problem for real 💸
 
 I chose to mess with the network
 
-Why? This is close(ish) to what would be seen in real life
+Why? This is close to what would be seen in real life and cheaper than calling for real!
 
 ---
 
@@ -372,6 +422,7 @@ In particular:
 - For a rate limit I'm betting boto3 looks at the HTTP response code
 - I'm also betting it'll be HTTP 429
 - I'm also betting the code doesn't care about the payload too much once it's a 429
+- Finally I'm betting boto3 doesn't verify a response checksum
 
 => Lets change the response code!
 
@@ -414,6 +465,8 @@ Content-Type: application/json;
 One way to mess with HTTP is using a HTTP proxy
 
 One tool which implements this is mitmproxy
+
+![inline fit](../images/http-proxy.png)
 
 ---
 
@@ -459,7 +512,7 @@ python my_app.py
 
 # curl
 
-```sh
+```
 ❯ https_proxy=localhost:8080 curl -I https://www.fourtheorem.com
 curl: (60) SSL certificate problem: unable to get local issuer certificate
 More details here: https://curl.se/docs/sslcerts.html
@@ -473,7 +526,23 @@ Not so easy after all!
 
 ---
 
-# TLS
+# Normal Working TLS
+
+![inline](../images/https.png)
+
+^ Trust store can be a full fledged service or a system folder of certificates.
+
+---
+
+# Our Broken TLS
+
+![inline fit](../images/mitm.png)
+
+---
+
+# What's Going Wrong?
+
+![inline fit](../images/mitm.png)
 
 What's happening?
 
@@ -495,7 +564,7 @@ Unfortunately that's what we want to do!
 
 # mitmproxy has an answer
 
-Luckily mitmproxy makes TLS certificates for you to use:
+Luckily mitmproxy generates TLS certificates for you to use:
 
 ```sh
 ❯ ls -l ~/.mitmproxy/
@@ -512,7 +581,7 @@ If you can somehow tell your command to trust these it will talk via mitmproxy!
 
 ---
 
-# Danger! ⚠️ Here be Dragons! 🐉
+# ⚠️ Danger! ⚠️ Here be Dragons! 🐉
 
 To work mitmproxy requires clients to trust these certificates
 
@@ -540,6 +609,45 @@ Date: Sun, 04 Sep 2022 20:09:03 GMT
 Content-Type: text/html; charset=utf-8
 Content-Length: 520810
 Connection: keep-alive
+...
+```
+
+---
+
+# Working mitmproxy
+
+![inline fit](../images/mitm-trusted.png)
+
+---
+
+```
+* Uses proxy env variable https_proxy == 'localhost:8080'
+*   Trying 127.0.0.1:8080...
+* Connected to localhost (127.0.0.1) port 8080 (#0)
+* allocate connect buffer!
+* Establish HTTP proxy tunnel to www.google.ie:443
+...
+* Proxy replied 200 to CONNECT request
+...
+* successfully set certificate verify locations:
+*  CAfile: /Users/mick/.mitmproxy/mitmproxy-ca-cert.pem
+*  CApath: none
+* (304) (OUT), TLS handshake, Client hello (1):
+* (304) (IN), TLS handshake, Server hello (2):
+* (304) (IN), TLS handshake, Unknown (8):
+* (304) (IN), TLS handshake, Certificate (11):
+* (304) (IN), TLS handshake, CERT verify (15):
+* (304) (IN), TLS handshake, Finished (20):
+* (304) (OUT), TLS handshake, Finished (20):
+* SSL connection using TLSv1.3 / AEAD-AES256-GCM-SHA384
+* ALPN, server accepted to use h2
+* Server certificate:
+*  subject: CN=*.google.ie
+*  start date: Sep 17 11:58:59 2022 GMT
+*  expire date: Sep 19 11:58:59 2023 GMT
+*  subjectAltName: host "www.google.ie" matched cert's "*.google.ie"
+*  issuer: CN=mitmproxy; O=mitmproxy
+*  SSL certificate verify ok.
 ...
 ```
 
@@ -699,3 +807,35 @@ fields @timestamp, event_name
 ```
 
 The graph shows over 250K retry attempts at the peak!
+
+It also shows some kind of oscillation, possibly due to so many connections sleeping at the same time.
+
+---
+
+# What We Covered
+
+- AWS API limits
+  - [https://docs.aws.amazon.com/AmazonS3/latest/userguide/optimizing-performance.html](https://docs.aws.amazon.com/AmazonS3/latest/userguide/optimizing-performance.html)
+- boto3's event system
+  - [https://boto3.amazonaws.com/v1/documentation/api/latest/guide/events.html](https://boto3.amazonaws.com/v1/documentation/api/latest/guide/events.html)
+- How request retries behave
+  - [https://boto3.amazonaws.com/v1/documentation/api/latest/guide/retries.html#standard-retry-mode](https://boto3.amazonaws.com/v1/documentation/api/latest/guide/retries.html#standard-retry-mode)
+- mitmproxy
+  - [https://mitmproxy.org](https://mitmproxy.org)
+
+---
+
+# Thank You! 🎉
+
+[.column]
+
+- ✉️ michael.twomey@fourtheorem.com
+- 🐤 [https://twitter.com/micktwomey](https://twitter.com/micktwomey)
+- 🧑🏽‍💼 [https://fourtheorem.com/](https://fourtheorem.com/)
+  - [https://twitter.com/fourtheorem](https://twitter.com/fourtheorem)
+
+[.column]
+
+![inline](../images/slides-qr-code.png)
+
+Slides & Code: [https://github.com/micktwomey/exploring-boto3-events-with-mitmproxy](https://github.com/micktwomey/exploring-boto3-events-with-mitmproxy)

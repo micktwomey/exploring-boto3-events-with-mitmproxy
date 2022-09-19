@@ -12,6 +12,7 @@ mitmproxy = "^8.1.1"
 rich = "^12.5.1"
 asciinema = "^2.2.0"
 cffi = "^1.15.1"
+segno = "^1.5.2"
 
 [tool.poetry.dev-dependencies]
 mypy = "^0.971"

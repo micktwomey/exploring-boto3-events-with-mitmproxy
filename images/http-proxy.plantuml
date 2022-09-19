@@ -1,0 +1,12 @@
+@startuml http-proxy
+scale 8
+!theme vibrant
+participant curl as app
+participant proxy as mitm
+participant fourtheorem.com as server
+
+app -> mitm: GET /
+mitm -> server: GET /
+server --> mitm: HTTP 200 OK
+mitm --> app: HTTP 429 Rate Limit Exceeded
+@enduml

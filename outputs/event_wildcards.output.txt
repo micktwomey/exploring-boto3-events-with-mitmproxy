@@ -1,0 +1,2 @@
+needs-retry.s3.ListBuckets
+needs-retry.ec2.DescribeInstances

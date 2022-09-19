@@ -1,0 +1,20 @@
+@startuml mitm-trusted
+scale 8
+!theme vibrant
+participant "TLS Trust Store" as store
+participant curl as app
+participant mitmproxy as mitm
+participant fourtheorem.com as server
+
+app -> mitm: Hello
+mitm -> app: Here's my self signed TLS certificate
+app --> store: Is this self signed certificate legit?
+store --> app: Yes!
+mitm -> server: Hello
+server -> mitm: Here's my fourtheorem.com TLS certificate
+mitm --> store: Is this fourtheorem.com certificate legit?
+store --> mitm: Yes!
+mitm -> server: GET /
+server -> mitm: HTTP 200 OK
+mitm -> app: HTTP 200 OK
+@enduml
