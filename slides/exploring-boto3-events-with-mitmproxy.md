@@ -3,9 +3,9 @@ slidenumbers: true
 
 # [fit] Exploring Boto3 Events with MitmProxy
 
-## AWS ComSum September 22, 2022
+## AWS Community Summit, September 22 2022
 
-![inline](../images/fourTheorem-Logo-Colour.png)
+![inline](../images/fourTheorem-Logo-White.png)
 
 Michael Twomey
 
@@ -279,7 +279,7 @@ s3.meta.events.register("*", print_event)
 
 ```
 
-- Python can capture keyword arguments (`foo="bar"`) into a variable using `**myvar`.
+^ Python can capture keyword arguments (`foo="bar"`) into a variable using `**myvar`.
 
 
 ---
@@ -797,7 +797,7 @@ print("All done!")
 
 ![left fit](../images/retries.png)
 
-```
+```bash
 fields @timestamp, event_name
 | filter ispresent(event_name)
 | filter event_name	= 'needs-retry.s3.PutObject'
@@ -809,6 +809,8 @@ fields @timestamp, event_name
 The graph shows over 250K retry attempts at the peak!
 
 It also shows some kind of oscillation, possibly due to so many connections sleeping at the same time.
+
+^Each horizontal tick mark is a minute
 
 ---
 
