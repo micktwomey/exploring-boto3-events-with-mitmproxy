@@ -55,6 +55,8 @@ Reach out to us at [hello@fourTheorem.com](hello@fourTheorem.com) ✉️
 
 ^ In short: how you combine tools to solve problems
 
+^ I'll attempt to give just enough explaination of topics as I go, expect some simplifications here and there
+
 ^ Image: "London underground map" in the style of Indiana Jones
 
 ---
@@ -293,15 +295,59 @@ s3.meta.events.register("*", print_event)
 
 # Some Observations
 
+[.column]
+
 - That's a lot of different inputs for different events!
 - The list of events isn't explicitly documented
 - The args each event can receive isn't explicitly documented
 
 => It's hard to guess what code you'll need to implement without triggering the behaviour you want
 
+[.column]
+
+```python
+provide-client-params.s3.ListBuckets
+{
+    'params': {},
+    'model': OperationModel(name=ListBuckets),
+    'context': {
+        'client_region': 'eu-west-1',
+        'client_config': <botocore.config.Config object at 0x1078b8d90>,
+        'has_streaming_input': False,
+        'auth_type': None
+    }
+}
+
+request-created.s3.ListBuckets
+{
+    'request': <botocore.awsrequest.AWSRequest object at 0x1078bac20>,
+    'operation_name': 'ListBuckets'
+}
+
+needs-retry.s3.ListBuckets
+{
+    'response': (
+        <botocore.awsrequest.AWSResponse object at 0x107abb970>,
+        {
+            'ResponseMetadata': {
+                'RequestId': 'QZV9EWHJMR4T8VQ9',
+    ...
+    'endpoint': s3(https://s3.eu-west-1.amazonaws.com),
+    'operation': OperationModel(name=ListBuckets),
+    'attempts': 1,
+    'caught_exception': None,
+    'request_dict': {
+        'url_path': '/',
+        'query_string': '',
+        'method': 'GET',
+    ...
+}
+```
+
 ---
 
 # Side track: Extending Libraries in Python
+## (Mick Complains About Lack of Autocomplete)
 
 There are a few "classic" approaches to extending code in Python:
 
@@ -328,7 +374,7 @@ class MyModifiedLibrary(MyLibrary):
 
 [.column]
 - Works best with libraries written as a bunch of classes
-- Can be very clunky and hard to predict how code will interact
+- Can be very clunky and hard to predict how code will interact (hello mixins!)
 - Usually needs explicit hooks for cleanly overriding functionality
 
 ---
@@ -357,7 +403,7 @@ add_handler(my_broken_handler)
 [.column]
 - Generally add_handler keeps a lis of functions to call somewhere
 - This approach allows for typing hints to guide the developer
-- Generally easy to document
+- Generally easy to document (code signatures do half the work)
 
 ---
 
@@ -368,22 +414,22 @@ add_handler(my_broken_handler)
 def add_handler(event: str, handler: Callable):
     pass
 
-def my_handler(arg1: int, arg2: float):
+def my_x_handler(arg1: int, arg2: float):
     pass
 
-def my_other_handler(arg1: str):
+def my_y_handler(arg1: str):
     pass
 
-add_handler("x.*", my_handler)
-add_handler("y.*", my_other_handler)
+add_handler("x.some_event", my_x_handler)
+add_handler("y.rare_important_event", my_y_handler)
 
-# This will probably break
-add_handler("y.*", my_handler)
+# This will probably break at runtime
+add_handler("y.rare_important_event", my_x_handler)
 ```
 
 [.column]
 - Events usually used for generic hooks in libraries
-- Ideally should have a consistent set of args for your handlers
+- Having a consistent set of args for your handlers makes life easier
 - Requires more documentation to guide the programmer
 
 ---
@@ -402,15 +448,15 @@ Solution: Lets watch them play out!
 
 # Triggering a rate limit
 
-There are many ways to trigger problems:
+There are many ways to trigger rate limits:
 
 - Hacking the library 📚
 - Hacking Python 🐍
 - Hacking the OS 👩‍💻
 - Hacking the network 🌐
-- Triggering the problem for real 💸
+- Triggering the rate limit for real 💸
 
-I chose to mess with the network
+I chose to mess with the network 🌐
 
 Why? This is close to what would be seen in real life and cheaper than calling for real!
 
@@ -692,17 +738,17 @@ We can now:
 
 How does this help us?
 
+![left](../images/dall-e-person-confused-in-a-room-full-of-computers.png)
+
 ---
 
 # More than a HTTP debugger
 
 mitmproxy offers the ability to intercept and change HTTP requests
+- [https://docs.mitmproxy.org/stable/mitmproxytutorial-interceptrequests/](https://docs.mitmproxy.org/stable/mitmproxytutorial-interceptrequests/)
+- [https://docs.mitmproxy.org/stable/mitmproxytutorial-modifyrequests/](https://docs.mitmproxy.org/stable/mitmproxytutorial-modifyrequests/)
 
-(It also offers a full API and the ability to replay requests)
-
-https://docs.mitmproxy.org/stable/mitmproxytutorial-interceptrequests/
-
-https://docs.mitmproxy.org/stable/mitmproxytutorial-modifyrequests/
+^ It also offers a full API and the ability to replay requests
 
 ---
 
