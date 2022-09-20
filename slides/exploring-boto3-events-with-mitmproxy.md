@@ -44,6 +44,19 @@ Reach out to us at [hello@fourTheorem.com](hello@fourTheorem.com) ✉️
 
 # What I'll be Talking About
 
+- Going to go through a problem from beginning to end
+- I'll show what issues I ran into and how I solved them
+- Will try to give just enough explanation of everything I use
+- There are many ways to achieve what I wanted, this is just one path!
+
+PS: I've a bunch of DALL-E credits to burn so expect silly images
+
+![right](../images/dall-e-oil-painting-cat-presenting.png)
+
+---
+
+# What I'll be Talking About
+
 - A dash of AWS APIs
 - Some boto3
 - A bit of Python
@@ -54,8 +67,6 @@ Reach out to us at [hello@fourTheorem.com](hello@fourTheorem.com) ✉️
 ![right fit](../images/dall-e-london-underground-indiana-jones.png)
 
 ^ In short: how you combine tools to solve problems
-
-^ I'll attempt to give just enough explaination of topics as I go, expect some simplifications here and there
 
 ^ Image: "London underground map" in the style of Indiana Jones
 
@@ -176,6 +187,8 @@ This is super verbose and logs an overwhelming level of detail
 What we want is some kind of hook to increment a count or emit a metric on retry
 
 Does boto3 offer any hooks? 🤔
+
+![right](../images/dall-e-logs-in-river.png)
 
 ---
 
@@ -879,10 +892,13 @@ It also shows some kind of oscillation, possibly due to so many connections slee
 
 [.column]
 
+![](../images/dall-e-cats-in-theatre.png)
+
 - ✉️ michael.twomey@fourtheorem.com
 - 🐤 [https://twitter.com/micktwomey](https://twitter.com/micktwomey)
 - 🧑🏽‍💼 [https://fourtheorem.com/](https://fourtheorem.com/)
   - [https://twitter.com/fourtheorem](https://twitter.com/fourtheorem)
+
 
 [.column]
 
