@@ -21,10 +21,11 @@ Michael Twomey
 
 # About Me
 
-- ☁️ Senior Cloud Architect at fourTheorem
+- Hi! 👋 I'm Michael Twomey 🇮🇪
 - Started my career in Sun Microsystems working on the Solaris OS in 1999 (when Y2K was a thing)
 - 🐍 Been coding in Python for over 20 years
 - Started kicking the tyres of AWS back when it was just S3, EC2 and SQS
+- ☁️ Senior Cloud Architect at fourTheorem
 
 [.column]
 
@@ -38,6 +39,8 @@ Reach out to us at [hello@fourTheorem.com](hello@fourTheorem.com) ✉️
 
 ^ We are a pioneering technology consultancy focused on aws and serverless
 
+^ Accelerated Serverless | AI as a Service | Platform Modernisation
+
 ^ You might also know us from AWS Bites, a weekly podcast with Eoin and Luciano
 
 ---
@@ -45,7 +48,7 @@ Reach out to us at [hello@fourTheorem.com](hello@fourTheorem.com) ✉️
 # What I'll be Talking About
 
 - Going to go through a problem from beginning to end
-- I'll show what issues I ran into and how I solved them
+- Show what issues I ran into and how I solved them
 - Will try to give just enough explanation of everything I use
 - There are many ways to achieve what I wanted, this is just one path!
 
@@ -218,16 +221,8 @@ Wildcards (`*`) are also allowed for patterns.
 
 [.column]
 ```python
-def print_event(event_name, **kwargs):
-    print(event_name)
-
 s3 = boto3.client("s3")
-s3.meta.events.register("needs-retry.*", print_event)
-s3.list_buckets()
-
-ec2 = boto3.client("ec2")
-ec2.meta.events.register("needs-retry.*", print_event)
-ec2.describe_instances()
+s3.meta.events.register("needs-retry.*", my_function)
 ```
 
 ---
@@ -252,6 +247,9 @@ ec2.describe_instances()
 ```
 
 ---
+
+[.code-highlight: all]
+[.code-highlight: 10,22]
 
 ```
 S3:
@@ -642,7 +640,7 @@ If you can somehow tell your command to trust these it will talk via mitmproxy!
 
 ---
 
-# ⚠️ Danger! ⚠️ Here be Dragons! 🐉
+# ⚠️ Danger! ⚠️ Here be Dragons!
 
 To work mitmproxy requires clients to trust these certificates
 
@@ -653,6 +651,8 @@ Recommendation: if possible restrict to one off command line invocations rather 
 Luckily we can override on a per invocation basis in curl and boto3
 
 Full guide: https://docs.mitmproxy.org/stable/concepts-certificates/
+
+![left](../images/dall-e-synthwave-dragon.png)
 
 ---
 
@@ -680,6 +680,9 @@ Connection: keep-alive
 ![inline fit](../images/mitm-trusted.png)
 
 ---
+
+[.code-highlight: all]
+[.code-highlight: 26]
 
 ```
 * Uses proxy env variable https_proxy == 'localhost:8080'
@@ -769,11 +772,16 @@ mitmproxy offers the ability to intercept and change HTTP requests
 
 1. Hit `i` to create an intercept
 2. `~d s3.eu-west-1.amazonaws.com & ~s`
+   - ~d match on domain, ~s match on server response
 3. Run the command
 4. In the UI go into the response and hit `e`
 5. Change the response code to 429
 6. Hit `a` to allow the request to continue
 7. Watch what happens in the command
+
+^ ~d match domain
+
+^ ~s match server response
 
 ---
 
@@ -895,9 +903,9 @@ It also shows some kind of oscillation, possibly due to so many connections slee
 ![](../images/dall-e-cats-in-theatre.png)
 
 - ✉️ michael.twomey@fourtheorem.com
-- 🐤 [https://twitter.com/micktwomey](https://twitter.com/micktwomey)
-- 🧑🏽‍💼 [https://fourtheorem.com/](https://fourtheorem.com/)
-  - [https://twitter.com/fourtheorem](https://twitter.com/fourtheorem)
+- 🐤 [twitter.com/micktwomey](https://twitter.com/micktwomey)
+- 🧑🏽‍💼 [fourtheorem.com](https://fourtheorem.com/)
+  - [twitter.com/fourtheorem](https://twitter.com/fourtheorem)
 
 
 [.column]
