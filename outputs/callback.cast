@@ -1,1 +1,2 @@
-{"version": 2, "width": 80, "height": 40, "timestamp": 1663593451, "env": {"SHELL": "/usr/local/bin/fish", "TERM": "xterm-256color"}}
+{"version": 2, "width": 80, "height": 40, "timestamp": 1664548583, "env": {"SHELL": "/usr/local/bin/fish", "TERM": "xterm-256color"}}
+[0.039077, "o", "5.3\r\n'int' object has no attribute 'join'\r\n"]

@@ -299,7 +299,7 @@ s3.meta.events.register("*", print_event)
 
 ---
 
-![fit](../outputs/basic_event_logging.gif)
+![fit](../outputs/basic_event_logging.mp4)
 
 
 ---
@@ -565,7 +565,7 @@ python my_app.py
 
 ---
 
-![fit](../outputs/tmux-2022-09-04--2105.gif)
+![fit](../outputs/tmux-2022-09-04--2105.mp4)
 
 ---
 
@@ -717,7 +717,7 @@ Connection: keep-alive
 
 ---
 
-![fit](../outputs/tmux-2022-09-04--2106.gif)
+![fit](../outputs/tmux-2022-09-04--2106.mp4)
 
 ---
 
@@ -742,7 +742,7 @@ We tell boto3 to use a different cert bundle (`AWS_CA_BUNDLE`)
 
 ---
 
-![fit](../outputs/tmux-2022-09-04--2130.gif)
+![fit](../outputs/tmux-2022-09-04--2130.mp4)
 
 ---
 
@@ -810,7 +810,7 @@ s3.list_buckets()
 
 ---
 
-![fit](../outputs/tmux-2022-09-04--2214.gif)
+![fit](../outputs/tmux-2022-09-04--2214.mp4)
 
 ---
 
@@ -858,7 +858,7 @@ print("All done!")
 
 ---
 
-![fit](../outputs/tmux-2022-09-04--2239.gif)
+![fit](../outputs/tmux-2022-09-04--2239.mp4)
 
 ---
 
