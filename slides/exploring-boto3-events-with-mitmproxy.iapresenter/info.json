@@ -2,6 +2,7 @@
   "creatorIdentifier" : "net.ia.presenter",
   "net.ia.presenter" : {
     "appearance" : "dark",
+    "logo" : "\/assets\/fourTheorem-Logo-White.png",
     "preset" : "Default",
     "template" : "san francisco"
   },
