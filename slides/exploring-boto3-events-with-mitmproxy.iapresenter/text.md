@@ -379,7 +379,7 @@ def event_emitting_call(arg):
    # ... do some work
    for hook in event_hooks:
      hook(("event", arg))
-     
+
 def register(callable):
   event_hooks.append(callable)
 
@@ -596,11 +596,11 @@ Is this documented anywhere? Nope!
 
 Semi realistic, the code will behave as it would if this really happened
 
-This is the one I chose. 
+This is the one I chose.
 
 ---
 # HTTP: The Bits We Care About
-# Client Request 💻→☁️ 
+# Client Request 💻→☁️
 ```http
 GET /cat.jpeg HTTP/1.1
 Host: example.s3.eu-west-2.amazonaws.com
@@ -944,21 +944,187 @@ It also offers a full API and the ability to replay requests
 
 ---
 
-# TODO: Show interception script
+```python
+import logging
+
+from mitmproxy import flowfilter
+from mitmproxy import http
+
+
+class RateLimitExceededFilter:
+    filter: flowfilter.TFilter
+
+    def __init__(self):
+        self.filter = flowfilter.parse("~d s3.eu-west-1.amazonaws.com & ~s")
+
+    def response(self, flow: http.HTTPFlow) -> None:
+        if flowfilter.match(self.filter, flow):
+            logging.info(f"Flow {flow.request} matches filter: setting HTTP 429")
+            flow.response.status_code = 429
+            flow.response.reason = "Too Many Requests"
+
+
+addons = [RateLimitExceededFilter()]
+```
 
 ---
 
-# TODO: Show results
+```sh
+mitmproxy -s examples/mitm_interception.py
+```
 
 ---
 
-# TODO: show where are we
+```sh
+https_proxy=localhost:8080 AWS_CA_BUNDLE=$HOME/.mitmproxy/mitmproxy-ca-cert.pem aws s3 ls
+
+An error occurred () when calling the ListBuckets operation:
+```
 
 ---
 
-# TODO: show final hooks
+
 
 ---
 
-# TODO: summary
+```python
+import boto3
+from rich import print
+import time
+
+
+def print_event(event_name: str, attempts: int, operation, response, request_dict, **_):
+    print(
+        event_name,
+        operation,
+        attempts,
+        response[1]["ResponseMetadata"]["HTTPStatusCode"],
+        request_dict["context"]["retries"],
+    )
+
+
+s3 = boto3.client("s3")
+s3.meta.events.register("needs-retry.s3.ListBuckets", print_event)
+s3.list_buckets()
+```
+
+Now we have a way to intercept let's start logging out the bits we might be interested in!
+
+---
+TODO
+
+You can see mitmproxy intercepting the requests
+
+---
+
+TODO
+
+And here you can see the output
+
+Note the attempt count, it always starts on 1 and retries start on 2.
+
+This is counter to my original intuition, I expected 0.
+
+So we now know to only pay attention to the count when > 1
+
+---
+
+# Will this ever end?
+	1. Got some jobs taking a long time
+	2. Guessed it's retries causing this
+	3. Want to use events to monitor these but don't have docs
+	4. Want to somehow modify responses to simulate retries and see what happens
+	5. Can intercept requests using mitmproxy
+	6. Now know the shape of the data we get in 429 responses
+	7. ??
+
+---
+
+```python
+import boto3
+from rich import print
+
+
+def increment_metric(name):
+    print(f"{name}|increment|count=1")
+
+
+def handle_retry(event_name: str, attempts: int, **_):
+    print("retry event?")
+    if attempts > 1:
+        increment_metric(event_name)
+    else:
+        print("nope!")
+
+
+s3 = boto3.client("s3")
+s3.meta.events.register("needs-retry.s3.*", handle_retry)
+s3.list_buckets()
+print("All done!")
+```
+
+---
+
+
+
+/assets/retry-metrics.png
+size: contain
+
+
+
+Note that we're retrying until the exception is raised, but remember that in production we usually didn't get an error, just slow downs.
+
+Now we can graph these and see how bad things are!
+
+---
+
+
+
+/assets/retries.png
+size: contain
+
+The graph shows over 250K retry attempts at the peak!
+
+It also shows some kind of oscillation, possibly due to so many connections sleeping at the same time.
+
+Each horizontal tick mark is a minute
+
+With some refinements we can now hone in on where this is happening
+
+---
+
+
+# Will this ever end?
+	1. Got some jobs taking a long time
+	2. Guessed it's retries causing this
+	3. Want to use events to monitor these but don't have docs
+	4. Want to somehow modify responses to simulate retries and see what happens
+	5. Can intercept requests using mitmproxy
+	6. Now know the shape of the data we get in 429 responses
+	7. Can emit metrics and graph them
+
+---
+
+# What We Covered
+
+## AWS API limits
+
+## boto3's event system
+
+## How request retries behave
+
+## mitmproxy
+
+## That nothing is ever simple!
+
+---
+
+# Thank You! 🎉
+# 🐘 [mastodon.ie/@micktwomey](https://mastodon.ie/@micktwomey)
+# 🧑🏽‍💼 [fourtheorem.com](https://fourtheorem.com/)
+
+# github.com/micktwomey/
+# exploring-boto3-events-with-mitmproxy
+/assets/qr-slides.png
+size: contain
 

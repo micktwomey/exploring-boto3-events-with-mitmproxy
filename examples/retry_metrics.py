@@ -7,8 +7,11 @@ def increment_metric(name):
 
 
 def handle_retry(event_name: str, attempts: int, **_):
+    print("retry event?")
     if attempts > 1:
         increment_metric(event_name)
+    else:
+        print("nope!")
 
 
 s3 = boto3.client("s3")
