@@ -1,0 +1,23 @@
+@startuml containers
+!include <awslib14/AWSCommon>
+!include <awslib14/Containers/Fargate>
+!include <awslib14/Storage/SimpleStorageServiceBucket>
+
+scale 8
+!theme vibrant
+
+left to right direction
+
+Fargate(container1, "Job B", "1")
+Fargate(container2, "Job C", "2")
+Fargate(containern, "Job E", "N")
+SimpleStorageServiceBucket(S3, "S3 Bucket", "Inputs & Outputs")
+
+container1 <-- S3: read
+container1 --> S3: write
+container2 <-- S3: read
+container2 --> S3: write
+containern <-- S3: read
+containern --> S3: write
+
+@enduml

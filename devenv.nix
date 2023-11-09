@@ -4,6 +4,7 @@
   packages = [
     pkgs.just
     pkgs.git
+    pkgs.plantuml
   ];
 
   enterShell = ''

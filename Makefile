@@ -13,6 +13,9 @@ AGG_BIN=build/agg/target/release/agg
 AGG=$(AGG_BIN) --idle-time-limit 1 --font-size 18 --no-loop --font-family "$(FONT_FAMILY)"
 QR_CODE=images/slides-qr-code.png
 
+.PHONY: plantuml
+plantuml: $(PLANTUML_TARGETS)
+
 .PHONY: all
 all: $(TXT_TARGETS) $(CAST_TARGETS) $(GIF_TARGETS) $(PLANTUML_TARGETS) $(QR_CODE) $(MP4_TARGETS)
 

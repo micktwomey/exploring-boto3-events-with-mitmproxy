@@ -91,6 +91,20 @@ Typically talking about tens of thousands to millions of jobs in each run.
 The majority of orchestration and compute is run using AWS infrastructure such as step functions, lambdas, fargate containers and SQS queues.
 
 ---
+/assets/renre-architecture-zoomed.png
+size: contain
+
+The bit to focus on for now is lots and lots of Fargate containers talking to S3
+
+---
+
+
+/assets/dag.png
+size: contain
+---
+/assets/containers.png
+size: contain
+---
 
 # "A serverless architecture for high performance financial modelling"
 ## https://aws.amazon.com/blogs/hpc/a-serverless-architecture-for-high-performance-financial-modelling/
@@ -101,16 +115,6 @@ size: contain
 For more details check out the post "A serverless architecture for high performance financial modelling"
 
 https://aws.amazon.com/blogs/hpc/a-serverless-architecture-for-high-performance-financial-modelling/
-
----
-
-# TODO: Insert DAG diagram here
-
-
----
-
-# TODO: Insert diagram of hundreds of containers making lots of AWS S3 requests
-
 
 ---
 
@@ -141,14 +145,6 @@ Read data (sometimes lots of S3 keys), process, then write output to S3 (sometim
 For larger objects we use the transfer manager which splits the object into lots of smaller chunks and uploads or downloads in parallel.
 
 ---
-/assets/renre-architecture-zoomed.png
-size: contain
-
-The bit to focus on for now is lots and lots of Fargate containers talking to S3
-
-TODO: replace this
-
----
 
 
 # The Problem:
@@ -161,7 +157,7 @@ TODO: replace this
 
 During very large job runs we would occasionally see inexplicable slow downs and sometimes outright failures
 
-TODO: dig up reference ticket
+We did the usual and checked our dashboards and alarms, nothing stood out.
 
 ---
 
@@ -182,8 +178,6 @@ botocore.exceptions.ClientError: An error occurred (429) when calling the GetObj
 
 Note that frequently we'd have a slow run but none of these errors. So no indication what was happening until we saw the errors.
 
-TODO: s3 logs
-
 ---
 
 The Rate Limit Errors prompted the question:
@@ -203,7 +197,9 @@ AWS has rate limits on their APIs (sensible!)
 
 ---
 
-# S3 PUT object ~= 3,500 requests per second
+# S3 PUT object
+
+# 3,500 requests per second
 
 S3 PUT object might have a rate limit of 3,500 requests per second [^2]
 
@@ -216,7 +212,8 @@ When you hit this you might get back a `HTTP 429` or `HTTP 503`
 import boto3
 
 s3 = boto2.client("s3")
-response = s3.get_object(...)  # Implicitly retries, blocking
+# Implicitly retries, blocking:
+response = s3.get_object(...)
 ```
 
 boto3 attempts to handle this invisibly via retries[^3] to minimize impact on your application
@@ -301,15 +298,6 @@ logging.basicConfig(level=logging.DEBUG)
 
 Could use logging at DEBUG level
 
-This is super verbose and logs an overwhelming level of detail
-
-What we want is some kind of hook to increment a count or emit a metric on retry
-
-Does boto3 offer any hooks? 🤔
-
-TODO: Add example of verbose logs
-
-
 ---
 
 ```
@@ -356,6 +344,10 @@ AWS4-HMAC-SHA256
 ```
 
 DEBUG logging in boto3 hugely verbose, unusuble in most situations.
+
+Particularly unsusable for us, this would likely generate a TiB of logs!
+
+If only there was some kind of hook or event we could use...
 
 ---
 
@@ -577,20 +569,11 @@ Is this documented anywhere? Nope!
 
 # 1. Triggering the rate limit for real 💸
 
----
-
 # 2. Hacking the library 📚
-
----
 
 # 3. Hacking Python 🐍
 
-
----
-
 # 4. Hacking the OS 👩‍💻
-
----
 
 # 5. Hacking the network 🌐
 
@@ -708,7 +691,7 @@ Easy right?
 ```python
 import httpx
 
-httpx.get("https://httpbin.org/get")
+httpx.get("http://httpbin.org/get")
 ```
 ```sh
 export http_proxy=localhost:8080
@@ -796,6 +779,7 @@ Unfortunately that's what we want to do!
 ---
 Luckily mitmproxy generates TLS certificates for you to use:
 
+# Self signed certs to the rescue!
 ```sh
 $ ls -l ~/.mitmproxy/
 total 48
@@ -812,7 +796,8 @@ If you can somehow tell your command to trust these it will talk via mitmproxy!
 
 ---
 
-# ⚠️ Danger! ⚠️ Here be Dragons! 🐉
+# ⚠️ Danger! ⚠️ 
+# Here be Dragons! 🐉
 	Full guide: https://docs.mitmproxy.org/stable/concepts-certificates/
 
 To work mitmproxy requires clients to trust these certificates
@@ -828,7 +813,9 @@ Luckily we can override on a per invocation basis in curl and boto3
 curl offers a simple way to trust a cert: `--cacert`
 
 ```sh
-$ https_proxy=localhost:8080 curl --cacert ~/.mitmproxy/mitmproxy-ca-cert.pem -I https://www.fourtheorem.com
+$ https_proxy=localhost:8080 \
+curl --cacert ~/.mitmproxy/mitmproxy-ca-cert.pem \
+-I https://www.fourtheorem.com
 HTTP/1.1 200 Connection established
 
 HTTP/1.1 200 OK
@@ -939,8 +926,41 @@ It also offers a full API and the ability to replay requests
 	7. Watch what happens in the command
 
 ---
-
-# TODO: Show interception in progress
+/assets/mitm-intercept-01.png
+size: contain
+---
+/assets/mitm-intercept-02.png
+size: contain
+---
+/assets/mitm-intercept-03.png
+size: contain
+---
+/assets/mitm-intercept-04.png
+size: contain
+---
+/assets/mitm-intercept-05.png
+size: contain
+---
+/assets/mitm-intercept-06.png
+size: contain
+---
+/assets/mitm-intercept-07.png
+size: contain
+---
+/assets/mitm-intercept-08.png
+size: contain
+---
+/assets/mitm-intercept-09.png
+size: contain
+---
+/assets/mitm-intercept-10.png
+size: contain
+---
+/assets/mitm-intercept-11.png
+size: contain
+---
+/assets/mitm-intercept-12.png
+size: contain
 
 ---
 
@@ -959,7 +979,9 @@ class RateLimitExceededFilter:
 
     def response(self, flow: http.HTTPFlow) -> None:
         if flowfilter.match(self.filter, flow):
-            logging.info(f"Flow {flow.request} matches filter: setting HTTP 429")
+            logging.info(
+              f"Flow {flow.request} matches filter: setting HTTP 429"
+            )
             flow.response.status_code = 429
             flow.response.reason = "Too Many Requests"
 
@@ -974,15 +996,20 @@ mitmproxy -s examples/mitm_interception.py
 ```
 
 ---
-
-```sh
-https_proxy=localhost:8080 AWS_CA_BUNDLE=$HOME/.mitmproxy/mitmproxy-ca-cert.pem aws s3 ls
-
-An error occurred () when calling the ListBuckets operation:
-```
-
+/assets/mitm-intercept-script-1.png
+size: contain
 ---
-
+/assets/mitm-intercept-script-2.png
+size: contain
+---
+/assets/mitm-intercept-script-3.png
+size: contain
+---
+/assets/mitm-intercept-script-4.png
+size: contain
+---
+/assets/mitm-intercept-script-5.png
+size: contain
 
 
 ---
@@ -1011,13 +1038,16 @@ s3.list_buckets()
 Now we have a way to intercept let's start logging out the bits we might be interested in!
 
 ---
-TODO
 
-You can see mitmproxy intercepting the requests
 
+/assets/retrying-2.png
+size: contain
 ---
 
-TODO
+
+/assets/retrying-3.png
+size: contain
+
 
 And here you can see the output
 
@@ -1065,12 +1095,8 @@ print("All done!")
 
 ---
 
-
-
 /assets/retry-metrics.png
 size: contain
-
-
 
 Note that we're retrying until the exception is raised, but remember that in production we usually didn't get an error, just slow downs.
 
@@ -1094,7 +1120,7 @@ With some refinements we can now hone in on where this is happening
 ---
 
 
-# Will this ever end?
+# Finally!
 	1. Got some jobs taking a long time
 	2. Guessed it's retries causing this
 	3. Want to use events to monitor these but don't have docs

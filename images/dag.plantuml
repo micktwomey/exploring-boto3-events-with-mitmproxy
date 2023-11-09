@@ -1,0 +1,18 @@
+@startuml dag
+
+scale 8
+!theme vibrant
+
+left to right direction
+
+(*) -right-> A
+A --> B
+A --> C
+B --> D
+C --> D
+A --> E
+E --> F
+D --> F
+F --> (*)
+
+@enduml
