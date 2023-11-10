@@ -1,13 +1,21 @@
 # Exploring boto3 Events With Mitmproxy
 
 ---
+
+/assets/qr-slides.png
+size: contain
+
+This QR code links to these slides and the code examples. 
+I'll post it up at the end but I also have it here so you can follow along on your own device if you want. 
+
+
 # Michael Twomey
 
 - Hi! 👋 I'm Michael Twomey 🇮🇪
-- Started my career in Sun Microsystems working on the Solaris OS in 1999 (when Y2K was a thing)
-- 🐍 Been coding in Python for over 20 years
+- I started my career in Sun Microsystems working on the Solaris OS in 1999 (when Y2K was a thing)
+- I've Been coding in Python for over 20 years 🐍
 - Started kicking the tyres of AWS back when it was just S3, EC2 and SQS
-- ☁️ Senior Cloud Architect at fourTheorem
+- I'm now a Senior Cloud Architect at fourTheorem
 
 
 ---
@@ -19,8 +27,13 @@ background: true
 filter: darken
 opacity: 50%
 
-We are a pioneering technology consultancy focused on aws and serverless
+A quick note on fourTheorem:
 
+We are a technology consultancy focused on AWS and serverless
+
+We help with cloud architecture, application modernisation and even HPC.
+
+I'm giving fourTheorem a shout out as it was in the context of a problem a client was having that this whole talk came to be!
 
 ---
 
@@ -30,8 +43,7 @@ size: contain
 /assets/awsbites.png
 size: contain
 
-
-You might also know us from AWS Bites, a weekly podcast with Eoin and Luciano
+I'd also be remiss if I didn't give a plug to the podcast AWS Bites, a weekly podcast from my colleagues Eoin and Luciano
 
 
 ---
@@ -39,11 +51,13 @@ You might also know us from AWS Bites, a weekly podcast with Eoin and Luciano
 
 # I'll be talking about solving a problem
 
-- Going to go through a problem from beginning to end
-- I'l show what issues I ran into and how I solved them
-- Will try to give just enough explanation of everything I use
-- There are many ways to achieve what I wanted, this is just one path!
+I'm going to go through a problem from beginning to end
 
+I'll show what issues I ran into and how I solved them
+
+I will try to give just enough explanation of everything I use
+
+There are many ways to achieve what I wanted, this is just one path!
 
 ---
 
@@ -52,21 +66,22 @@ You might also know us from AWS Bites, a weekly podcast with Eoin and Luciano
 # boto3 🐍
 # Python 🐍
 
-# mitmproxy 🔨
-
 # HTTP 🌍
 # TLS 🔒
 
+# mitmproxy 🔨
 
-Some tools I'll be using:
-- A dash of AWS APIs
-- Some boto3
-- A bit of Python
-- A pinch of HTTP
-- A tiny bit of TLS
-- A portion of mitmproxy
+I'll be talking about a few different things:
 
-In short: how you combine tools to solve problems
+A bit of AWS (just enough to understand the problem)
+
+Some boto3, the python AWS client SDK
+
+A little bit about HTTP and TLS
+
+Finally I'll be showing a tool I like to use called mitmproxy
+
+The goal is to show how I tackled a problem using these tools and the speed bumps I hit along the way
 
 ---
 
@@ -80,15 +95,17 @@ Before I talk about the problem I need to talk a little bit about the system and
 /assets/renre-architecture.png
 size: contain
 
-Code base using Python and the boto3 library to talk to AWS
+The code base uses Python and the boto3 library to talk to AWS
 
-The core of the system runs a huge amount of computations spread over a large amount of jobs in either Lambda or Fargate containers
+The core of the system runs a huge amount of computations spread over a large amount of jobs, running on either Lambda or Fargate containers.
+
+Each job will read and write data from and to S3.
 
 It wouldn't be unusual to have thousands of containers running many compute jobs per second.
 
 Typically talking about tens of thousands to millions of jobs in each run.
 
-The majority of orchestration and compute is run using AWS infrastructure such as step functions, lambdas, fargate containers and SQS queues.
+The majority of orchestration and compute is run using AWS infrastructure such as step functions and SQS queues. They're not super relevant to this problem!
 
 ---
 /assets/renre-architecture-zoomed.png
@@ -101,9 +118,21 @@ The bit to focus on for now is lots and lots of Fargate containers talking to S3
 
 /assets/dag.png
 size: contain
+
+One important aspect of this system is that it runs tasks in order based on a directed acyclic graph, or DAG
+
+This is the same sort of graph you'd see in a makefile or build system.
+
+It's relevant as some jobs will have to wait on others, so any impact on performance can have quite a big knock on effect.
+
+In this example you can't start D until A, B and C are complete.
+
 ---
 /assets/containers.png
 size: contain
+
+The interaction between each container and S3 is quite simple, they'll either read data from S3 or write data to S3
+
 ---
 
 # "A serverless architecture for high performance financial modelling"
@@ -112,7 +141,7 @@ size: contain
 size: contain
 
 
-For more details check out the post "A serverless architecture for high performance financial modelling"
+For more details check out the AWS HPC blog post "A serverless architecture for high performance financial modelling"
 
 https://aws.amazon.com/blogs/hpc/a-serverless-architecture-for-high-performance-financial-modelling/
 
@@ -150,10 +179,12 @@ For larger objects we use the transfer manager which splits the object into lots
 # The Problem:
 ## We got one of the dreaded questions
 
+We got a question.
+
+One of the questions you dread when operating a system
 ---
 
 	> "Why is my compute job so slow?"
-
 
 During very large job runs we would occasionally see inexplicable slow downs and sometimes outright failures
 
@@ -176,13 +207,16 @@ botocore.exceptions.ClientError: An error occurred (429) when calling the GetObj
 ```
 
 
-Note that frequently we'd have a slow run but none of these errors. So no indication what was happening until we saw the errors.
+
+Note that frequently we'd have a slow run but no errors. 
+
+Finally we saw the occassional error which pointed us in the right direction.
 
 ---
 
 The Rate Limit Errors prompted the question:
 
-# "Are we triggering a lot of S3 request retries?"
+	> "Are we triggering a lot of S3 request retries?"
 
 This could also equally apply to Kinesis or SQS or other APIs
 
@@ -190,9 +224,8 @@ This could also equally apply to Kinesis or SQS or other APIs
 
 # Request retries?
 # Rate limits?
-## Isn't the cloud infinite?
 
-AWS has rate limits on their APIs (sensible!)
+## Isn't the cloud as infinite as your wallet?
 
 
 ---
@@ -201,9 +234,15 @@ AWS has rate limits on their APIs (sensible!)
 
 # 3,500 requests per second
 
-S3 PUT object might have a rate limit of 3,500 requests per second [^2]
+AWS has rate limits on their APIs (which is very sensible!)
+
+In fact they have many carefully thought out quotas and limits which are a combination of system limitations and economic models.
+
+S3 PUT object might have a rate limit of 3,500 requests per second
 
 When you hit this you might get back a `HTTP 429` or `HTTP 503`
+
+[https://docs.aws.amazon.com/AmazonS3/latest/userguide/optimizing-performance.html](https://docs.aws.amazon.com/AmazonS3/latest/userguide/optimizing-performance.html)
 
 ---
 
@@ -218,10 +257,7 @@ response = s3.get_object(...)
 
 boto3 attempts to handle this invisibly via retries[^3] to minimize impact on your application
 
-[^2]: [https://docs.aws.amazon.com/AmazonS3/latest/userguide/optimizing-performance.html](https://docs.aws.amazon.com/AmazonS3/latest/userguide/optimizing-performance.html)
-
-[^3]: [https://boto3.amazonaws.com/v1/documentation/api/latest/guide/retries.html#standard-retry-mode](https://boto3.amazonaws.com/v1/documentation/api/latest/guide/retries.html#standard-retry-mode)
-
+[https://boto3.amazonaws.com/v1/documentation/api/latest/guide/retries.html#standard-retry-mode](https://boto3.amazonaws.com/v1/documentation/api/latest/guide/retries.html#standard-retry-mode)
 
 ---
 
@@ -275,12 +311,13 @@ Site note: note how it carefully adds up to less than 60 seconds. This is the de
 
 ---
 
-# Theory: Even though we mostly eventually succeed, we take a really long time doing stuff
+# Theory
+	> Even though we mostly eventually succeed, we take a really long time doing stuff
 
 
 ---
 
-# Where We Are
+# Where we are in the problem
 	1. Got some jobs taking a long time
 	2. Guessed it's retries causing this
 	3. ??
@@ -355,9 +392,6 @@ If only there was some kind of hook or event we could use...
 
 Events[^6] are an extension mechanism for boto3
 
-
-// ![inline fit](../images/boto3-events-docs.png)
-
 [^6]: boto3 event docs over at [https://boto3.amazonaws.com/v1/documentation/api/latest/guide/events.html](https://boto3.amazonaws.com/v1/documentation/api/latest/guide/events.html)
 
 
@@ -380,19 +414,17 @@ event_emitting_call("hello")
 # prints ("event", "hello")
 ```
 
-This is an exampe of how you could implement events in python.
+This is an example of how you could implement events in python.
 
 The core idea is you have hooks in your library code which can call handlers with some data. In some cases the hooks could modify data too.
 
 As a user you can register your own functions to react to these events.
 
+More advanced use allows you to modify data from the hook. Handy for things like authentication.
+
 ---
 
 boto3 Events
-
-You register a function to be called when an event matching a pattern happens.
-
-Wildcards (`*`) are also allowed for patterns.
 
 ```python
 s3 = boto3.client("s3")
@@ -408,7 +440,16 @@ s3.meta.events.register(
 "*"
 ```
 
-Annoyance: even though you specify s3 in the event name you still have to use a s3 specific event register call. Vice versa, why have s3 in the name if using a specific call.
+
+You register a function to be called when an event matching a pattern happens.
+
+Wildcards (`*`) are also allowed for patterns.
+
+However I don't believe you can glob anywhere except at the end.
+
+Annoyance: even though you specify s3 in the event name you still have to use a s3 specific event register call. 
+
+Vice versa, why have s3 in the name if using a specific call.
 
 ---
 
@@ -473,11 +514,12 @@ s3.meta.events.register("*", print_event)
 
 ```
 
+
+There's more than just the event name, there are a bunch of params being passed in. However we've no idea what they are.
+
 Python can capture keyword arguments (`foo="bar"`) into a variable using `**myvar`.
 
 This is way more useful, now you are getting arguments too!
-
-
 ---
 ```python
 provide-client-params.s3.ListBuckets
@@ -502,6 +544,13 @@ request-created.s3.ListBuckets
     'request': <botocore.awsrequest.AWSRequest>,
     'operation_name': 'ListBuckets'
 }
+
+# example of how your hook is called
+my_hook(
+  "request-created.s3.ListBuckets",
+  request=...,
+  operation_name=...
+)
 ```
 
 
@@ -529,6 +578,7 @@ needs-retry.s3.ListBuckets
 }
 ```
 
+This one looks relevant
 
 ---
 
@@ -538,6 +588,14 @@ needs-retry.s3.ListBuckets
 'attempts': 1,
 'caught_exception': None,
 ...
+
+# example of how your hook is called
+my_hook(
+  "needs-retry.s3.ListBuckets",
+  attempts=1,
+  caught_exception=None,
+  ...
+)
 ```
 
 This looks really promising. Doest that attempts count go up?
@@ -555,7 +613,7 @@ Is this documented anywhere? Nope!
 
 
 ---
-# Where We Are
+# Where we are
 	1. Got some jobs taking a long time
 	2. Guessed it's retries causing this
 	3. Want to use events to monitor these but don't have docs
@@ -569,15 +627,39 @@ Is this documented anywhere? Nope!
 
 # 1. Triggering the rate limit for real 💸
 
+This is time consuming and really expensive. We could run up a bill of thousands doing this.
+
 # 2. Hacking the library 📚
+
+We could add debugging or modify the library (botocore or boto3)
+
+This requires building a mental model of the library  
+
+You've no guarantee your changes reflect reality
+
+Sometimes printing something accidentally consumes a resource and changes the code's behaviour!
+
+Also, we can't debug in the production system.
 
 # 3. Hacking Python 🐍
 
+We could fiddle with the python implementation or libraries.
+
+This could give us some fairly low level info
+
+Could be a bunch of work though
+
 # 4. Hacking the OS 👩‍💻
+
+We could use something like gdb or ebpf to debug this
+
+Starting to get into very low level debugging though!
 
 # 5. Hacking the network 🌐
 
-Semi realistic, the code will behave as it would if this really happened
+Semi realistic, the code will behave as it would if this really happened.
+
+Can treat all the code as a black box and change the only point of interaction with AWS you have: the network.
 
 This is the one I chose.
 
@@ -592,7 +674,7 @@ Host: example.s3.eu-west-2.amazonaws.com
 
 # Server Response 💻←🐱
 ```http
-HTTP/1.1 200 OK
+HTTP/1.1 200 OK  👈🧐
 Content-Type: image/jpeg
 ...
 ```
@@ -624,7 +706,7 @@ size: contain
 
 # From Success 😭
 ```javascript
-HTTP/1.1 200 OK
+HTTP/1.1 200 OK  👈
 Content-Length: 34202
 Content-Type: application/json
 ...
@@ -635,7 +717,7 @@ Content-Type: application/json
 
 # To Failure! 🙃
 ```javascript
-HTTP/1.1 429 Rate limit exceeded
+HTTP/1.1 429 Rate limit exceeded  👈
 Content-Length: 34202
 Content-Type: application/json;
 ...
@@ -748,7 +830,10 @@ botocore.exceptions.SSLError: SSL validation failed for https://micktwomey-scrat
 
 # TLS is doing its job
 ```sh
-http_proxy=localhost:8080 https_proxy=localhost:8080 curl https://fourtheorem.com/
+http_proxy=localhost:8080 \
+https_proxy=localhost:8080 \
+curl https://fourtheorem.com/
+
 curl: (60) SSL certificate problem: unable to get local issuer certificate
 More details here: https://curl.se/docs/sslcerts.html
 
@@ -779,7 +864,7 @@ Unfortunately that's what we want to do!
 ---
 Luckily mitmproxy generates TLS certificates for you to use:
 
-# Self signed certs to the rescue!
+# (ab)using self signed certs for the win!
 ```sh
 $ ls -l ~/.mitmproxy/
 total 48
@@ -796,7 +881,7 @@ If you can somehow tell your command to trust these it will talk via mitmproxy!
 
 ---
 
-# ⚠️ Danger! ⚠️ 
+# ⚠️ Danger! ⚠️
 # Here be Dragons! 🐉
 	Full guide: https://docs.mitmproxy.org/stable/concepts-certificates/
 
@@ -904,6 +989,9 @@ size: contain
 	5. Can intercept requests using mitmproxy
 	6. ??
 
+
+Cool, we can watch the network traffic, but how does that help us figure out the events?
+
 ---
 
 # More than a HTTP debugger
@@ -964,6 +1052,7 @@ size: contain
 
 ---
 
+# I'm Lazy
 ```python
 import logging
 
