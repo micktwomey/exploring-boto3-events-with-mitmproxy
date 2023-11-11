@@ -16,5 +16,8 @@ def handle_retry(event_name: str, attempts: int, **_):
 
 s3 = boto3.client("s3")
 s3.meta.events.register("needs-retry.s3.*", handle_retry)
-s3.list_buckets()
+try:
+    s3.list_buckets()
+except Exception as e:
+    pass
 print("All done!")
